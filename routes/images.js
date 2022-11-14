@@ -42,7 +42,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/upload',  async (req, res) => {
-      upload(req, res, (err) => {
+      upload(req, res, async (err) => {
         if(err) {
           res.status(400).send(err);
         }
@@ -52,27 +52,22 @@ router.post('/upload',  async (req, res) => {
           const fileName = 'upload_at_' + uniqueSuffix + path.extname(req.file.originalname); 
           const fileBlob = fs.readFileSync(req.file.path);
 
-
-          (async () => {
-              await awsS3.sendS3(fileName, fileBlob);            
-              const data = await awsSqs.sendMessage(req.body.sessionId);
-
-              const imageS3 = new Images({
-                seesionId: req.body.sessionId, 
-                imageS3: fileName, 
-                action:  req.body.action, 
-                queueId: data.MessageId,
-                convert: false
-              });
-
-              imageS3.save((err, doc) => {
-                if (!err) {
-                    console.log('success', 'Image added successfully!');
-                } else {
-                    console.log('Error during record insertion : ' + err);
-                }
-              });
-          })();
+          await awsS3.sendS3(fileName, fileBlob);            
+          const data = await awsSqs.sendMessage(req.body.sessionId)
+          const imageS3 = new Images({
+            seesionId: req.body.sessionId, 
+            imageS3: fileName, 
+            action:  req.body.action, 
+            queueId: data.MessageId,
+            convert: false
+          })
+          imageS3.save((err, doc) => {
+            if (!err) {
+                console.log('success', 'Image added successfully!');
+            } else {
+                console.log('Error during record insertion : ' + err);
+            }
+          });  
           
           res.send(req.file);
         } catch (e){

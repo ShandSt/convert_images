@@ -1,31 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const awsS3 = require('../aws/s3.js');
+const awsSqs = require('../aws/sqs.js');
 const path = require('path');
+const fs = require('fs');
+const Images = require('../models/Image');
 
-const storage = multer.diskStorage({
-  destination: function(req, file, callback) {
-    callback(null, 'uploads/');
-  },
-  filename: function (req, file, callback) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    //callback(null, file.fieldname + '-' + uniqueSuffix);
-    callback(null , 'upload_at_' + uniqueSuffix + path.extname(file.originalname)); 
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: function(req, file, callback) {
+//     callback(null, 'uploads/');
+//   },
+//   filename: function (req, file, callback) {
+//     callback(null , 'upload_at_' + uniqueSuffix + path.extname(file.originalname)); 
+//   }
+// });
+
 const upload = multer({
   dest: 'uploads/',
   limits: {
     fileSize: 1000000,
   },
-  storage: storage,
+  //storage: storage,
   fileFilter(req, file, cb) {
     if (!file.originalname.match(/\.(png|jpg|jpeg)$/)) {
-      cb(new Error('Please upload an image.'))
+      cb(new Error('Please upload an image.'));
     }
     cb(undefined, true);
-  }
-}).single("file");
+  },
+}).single('file');
 
 const genres = [
   { id: 1, name: 'Action' },  
@@ -34,25 +37,48 @@ const genres = [
 ];
 
 router.get('/', (req, res) => {
-  res.send(genres);
+  res.write('Heelo world');
+	res.end();
 });
 
 router.post('/upload',  async (req, res) => {
       upload(req, res, (err) => {
         if(err) {
-          res.status(400).send("Something went wrong!");
+          res.status(400).send(err);
         }
-          console.log(req);
+
         try {
-          //console.log(req.sessionID)
-          // const incident = await Incident.findById(req.body.id);
-          // incident.image = req.file.buffer;
-          // incident.save();
-          //res.send('Complete');
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const fileName = 'upload_at_' + uniqueSuffix + path.extname(req.file.originalname); 
+          const fileBlob = fs.readFileSync(req.file.path);
+
+
+          (async () => {
+              await awsS3.sendS3(fileName, fileBlob);            
+              const data = await awsSqs.sendMessage(req.body.sessionId);
+
+              const imageS3 = new Images({
+                seesionId: req.body.sessionId, 
+                imageS3: fileName, 
+                action:  req.body.action, 
+                queueId: data.MessageId,
+                convert: false
+              });
+
+              imageS3.save((err, doc) => {
+                if (!err) {
+                    console.log('success', 'Image added successfully!');
+                } else {
+                    console.log('Error during record insertion : ' + err);
+                }
+              });
+          })();
+          
+          res.send(req.file);
         } catch (e){
           res.status(400).send(e);
-        }
-        res.send(req.file);
+        }    
+        res.end();
       });
   }, (error, req, res, next) => {
     res.status(400).send({error: error.message});

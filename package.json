@@ -9,9 +9,15 @@
   "author": "shandstas",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.179.0",
+    "@aws-sdk/client-sqs": "^3.179.0",
+    "dotenv": "^16.0.3",
     "express": "^4.18.1",
     "express-session": "^1.17.3",
-    "mongoose": "^6.5.0",
-    "multer": "^1.4.5-lts.1"
+    "lodash": "^4.17.21",
+    "mongoose": "^6.6.1",
+    "multer": "^1.4.5-lts.1",
+    "sqs-consumer": "^5.7.0",
+    "ws": "^8.9.0"
   }
 }

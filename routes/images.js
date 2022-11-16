@@ -79,7 +79,19 @@ router.post('/upload',  async (req, res) => {
     res.status(400).send({error: error.message});
 });
 
+router.get('/getConvertImage', async (req, res) => {
+  const image = await Images.findOne({ seesionId: req.sessionId, convert: true});
+  const img = await awsS3.getImage(image.imageS3);
 
+  res.send(`data:image/png;base64,${toBase64(img)}`);
+	res.end();
+});
 
+function toBase64(arr) {
+   //arr = new Uint8Array(arr) if it's an ArrayBuffer
+   return btoa(
+      arr.reduce((data, byte) => data + String.fromCharCode(byte), '')
+   );
+}
 
 module.exports = router;

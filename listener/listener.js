@@ -7,7 +7,6 @@ const Images = require('../models/Image');
 const path = require('path');
 const fs = require('fs');
 const awsS3 = require('../aws/s3.js');
-const { WebSocketServer } = require('ws');
 require('dotenv').config();
 
 AWS.config.update({
@@ -16,23 +15,17 @@ AWS.config.update({
 	secretAccessKey: process.env.SECRET_ACCESS_KEY
 });
 
-const wss = new WebSocketServer({ port: 8080 });
+var obj;
 
 const consumer = Consumer.create({
   queueUrl: 'https://sqs.us-west-2.amazonaws.com/213324592790/download-convert-image',
-  handleMessage: async (message) => {  
+  handleMessage: async (message, imageReady) => {  
     console.log('start');
     const image = await Images.findOne({ queueId: message.MessageId, convert: true});
     const img = await awsS3.getImage(image.imageS3);
 
-    wss.on('connection', function connection(ws) {
-      ws.on('message', function message(data) {
-        console.log('received: %s', data);
-      });
-
-      console.log('Image ' + img.seesionId + ' ready!');
-      ws.send('Image ' + img.seesionId + ' ready!');
-    });
+  
+    obj = { text: 'ready!' };
 
     console.log(img);
     console.log('finish');
@@ -46,4 +39,4 @@ const consumer = Consumer.create({
   })
 });
 
-module.exports = { consumer };
+module.exports = { consumer, obj };

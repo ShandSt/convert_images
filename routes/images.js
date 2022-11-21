@@ -37,7 +37,7 @@ const genres = [
 ];
 
 router.get('/', (req, res) => {
-  res.write('Heelo world');
+  res.write('Hello world');
 	res.end();
 });
 

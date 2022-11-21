@@ -1,26 +1,16 @@
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
 const { WebSocketServer } = require('ws');
+const wss = new WebSocketServer({ server: server});
 
-const wss = new WebSocketServer({
-  port: 8080,
-  perMessageDeflate: {
-    zlibDeflateOptions: {
-      // See zlib defaults.
-      chunkSize: 1024,
-      memLevel: 7,
-      level: 3
-    },
-    zlibInflateOptions: {
-      chunkSize: 10 * 1024
-    },
-    // Other options settable:
-    clientNoContextTakeover: true, // Defaults to negotiated value.
-    serverNoContextTakeover: true, // Defaults to negotiated value.
-    serverMaxWindowBits: 10, // Defaults to negotiated value.
-    // Below options specified as default values.
-    concurrencyLimit: 10, // Limits zlib concurrency for perf.
-    threshold: 1024 // Size (in bytes) below which messages
-    // should not be compressed if context takeover is disabled.
-  }
+wss.on('connection', function connection(wss) {
+  wss.on('message', function message(data) {
+		console.log('received: %s', data);
+	});
 });
 
-module.exports = { wss };
+const port = 4000;
+server.listen(port, () => console.log(`Ws listening on port ${port}...`));
+
+module.exports = wss;

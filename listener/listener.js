@@ -1,5 +1,3 @@
-const express = require('express');
-const app = express();
 const { Consumer } = require('sqs-consumer');
 const AWS = require('aws-sdk');
 const https = require('https');

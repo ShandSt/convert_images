@@ -23,18 +23,12 @@ const upload = multer({
   },
   //storage: storage,
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(png|jpg|jpeg|webp)$/)) {
+    if (!file.originalname.match(/\.(png|jpg|jpeg|webp|mp4)$/)) {
       cb(new Error('Please upload an image.'));
     }
     cb(undefined, true);
   },
 }).single('file');
-
-const genres = [
-  { id: 1, name: 'Action' },  
-  { id: 2, name: 'Horror' },  
-  { id: 3, name: 'Romance' },  
-];
 
 router.get('/', (req, res) => {
   res.write('Hello world');

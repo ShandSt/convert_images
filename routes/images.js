@@ -19,11 +19,11 @@ const Images = require('../models/Image');
 const upload = multer({
   dest: 'uploads/',
   limits: {
-    fileSize: 1000000,
+    fileSize: 1000000000,
   },
   //storage: storage,
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(png|jpg|jpeg)$/)) {
+    if (!file.originalname.match(/\.(png|jpg|jpeg|webp)$/)) {
       cb(new Error('Please upload an image.'));
     }
     cb(undefined, true);

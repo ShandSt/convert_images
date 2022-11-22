@@ -2,6 +2,8 @@ const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { s3Client } = require( "../libs/s3Client.js");
 const fs = require('fs');
 
+require('dotenv').config();
+
 const streamToString = (stream) =>
   new Promise((resolve, reject) => {
     const chunks = [];
@@ -12,7 +14,7 @@ const streamToString = (stream) =>
       
 const getImage = async (key) => {
   const bucketParams = {
-    Bucket: "convertor-image-express",
+    Bucket: process.env.BUCKET,
     Key: key,
   };
 
@@ -31,7 +33,7 @@ const getImage = async (key) => {
 
 const sendS3 = async (key, file) => {
   const params = {
-    Bucket: "convertor-image-express",
+    Bucket: process.env.BUCKET,
     Key: key,
     Body: file,
   };

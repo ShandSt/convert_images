@@ -14,7 +14,7 @@ AWS.config.update({
 });
 
 const consumer = Consumer.create({
-  queueUrl: 'https://sqs.us-west-2.amazonaws.com/213324592790/download-convert-image',
+  queueUrl: process.env.SQS_DOWNLOAD,
   handleMessage: async (message, imageReady) => {  
     console.log('start');
     const image = await Images.findOne({ queueId: message.MessageId, convert: true});
